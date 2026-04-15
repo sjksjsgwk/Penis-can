@@ -28,14 +28,14 @@ CREATE TABLE IF NOT EXISTS users (
     money INT DEFAULT 1000,
     last_grow BIGINT DEFAULT 0,
     last_coin BIGINT DEFAULT 0
-);
+)
 """)
 conn.commit()
 
 # ================= MEMORY =================
 pending_vs = {}
 
-# ================= HELP =================
+# ================= USER =================
 def get_user(user):
     cursor.execute("SELECT * FROM users WHERE user_id=%s", (user.id,))
     data = cursor.fetchone()
@@ -53,7 +53,7 @@ def get_user(user):
 # ================= START =================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("""
-🤖 BOT AKTİF!
+🤖 BOT AKTİF
 
 📌 Komutlar:
 /profil
@@ -126,7 +126,7 @@ async def coin(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     conn.commit()
 
-    await update.message.reply_text(f"💰 +{reward} coin kazandın!")
+    await update.message.reply_text(f"💰 +{reward} coin")
 
 # ================= SIRALAMA =================
 async def siralama(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -137,7 +137,6 @@ async def siralama(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rows = cursor.fetchall()
 
     text = "🏆 TOP 15\n\n"
-
     for i, r in enumerate(rows, 1):
         text += f"{i}. {r[0] or 'Anonim'} - {r[1]} cm\n"
 
@@ -146,12 +145,12 @@ async def siralama(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ================= VS =================
 async def vs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message.reply_to_message:
-        return await update.message.reply_text("Reply at!")
+        return await update.message.reply_text("Reply at")
 
     try:
         miktar = int(context.args[0])
         if miktar < 10 or miktar > 1000000:
-            return await update.message.reply_text("❌ 10 - 1.000.000")
+            return await update.message.reply_text("❌ 10 - 1.000.000 arası")
     except:
         return await update.message.reply_text("Kullanım: /vs 100")
 
@@ -174,15 +173,15 @@ async def vs(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     kb = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Kabul", callback_data=f"ok_{key}"),
-            InlineKeyboardButton("❌ Red", callback_data=f"no_{key}")
+            InlineKeyboardButton("Kabul", callback_data=f"ok_{key}"),
+            InlineKeyboardButton("Red", callback_data=f"no_{key}")
         ]
     ])
 
     await update.message.reply_text(
-        f"""⚔️ VS
+        f"""⚔️ VS DAVETİ
 
-👤 {u1.username} → {u2.username}
+👤 {u1.username or 'Anonim'} vs {u2.username or 'Anonim'}
 💰 Bahis: {miktar} cm""",
         reply_markup=kb
     )
@@ -192,10 +191,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
 
-    d = q.data
+    data = q.data
 
-    if d.startswith("ok_"):
-        key = d[3:]
+    if data.startswith("ok_"):
+        key = data[3:]
         v = pending_vs.get(key)
 
         if not v:
@@ -215,16 +214,16 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         del pending_vs[key]
 
-        await q.edit_message_text(f"⚔️ VS BİTTİ!\n💰 {m} cm değişti!")
+        await q.edit_message_text(f"⚔️ VS BİTTİ!\n💰 {m} cm değişti")
 
-    elif d.startswith("no_"):
-        key = d[3:]
+    elif data.startswith("no_"):
+        key = data[3:]
         if key in pending_vs:
             del pending_vs[key]
 
-        await q.edit_message_text("❌ Reddedildi")
+        await q.edit_message_text("❌ reddedildi")
 
-# ================= RUN =================
+# ================= APP =================
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
